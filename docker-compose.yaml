@@ -1,0 +1,56 @@
+services:
+  postgresql:
+    container_name: devps-app-postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: MyPass01
+      POSTGRES_USER: todo
+      POSTGRES_DB: todo
+    volumes:
+      - devps-app-postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - deovps-app
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "fulano@email.com"
+      PGADMIN_DEFAULT_PASSWORD: "MyPass01"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgresql
+    networks:
+      - deovps-app
+
+  deovps-app_front:
+    image: devops-app:latest
+    build:
+      dockerfile: ./front/Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+
+  deovps-app_back:
+    image: devops-back:latest
+    build:
+      context: .
+      dockerfile: ./back/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings:Postgres: ${POSTGRES} 
+    ports:
+      - 8080:8080
+    networks:
+      - deovps-app
+
+networks:
+  deovps-app:
+  
+volumes:
+  devps-app-postgres:
